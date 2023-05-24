@@ -3,21 +3,37 @@ import openai
 import requests
 import streamlit as st
 from streamlit_chat import message
+#from api import post_request
+import json
+
 
 openai.api_type = "azure"
 openai.api_base = "https://testofgptapiinitial.openai.azure.com/"
 openai.api_version = "2023-03-15-preview"
 openai.api_key = "8412267798784cdfa103c445c69f603d"
 
+def post_request(data: json, api: str) -> bool:
+
+    url = f"https://aiehackathon2023.replit.app/{api}"
+
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+
+    print(response.status_code)
+
+    print(response.text)
+    return response.status_code
+
 # init msg to chat
-basic =[
+basic = [
     {
         "role": "system",
-        "content": "You are an AI assistant that helps users format their API requests. Endpoints are Analysis, Supplier, Order and Product. Users will ask you about ways to enter information via API and you have to provide them with request bodies that would make for successful calls, based on the examples you have. If users don't provide all the information needed in the request fields, your response should be a request for such information instead a sample payload. You should NEVER output a json response unless the user has provided the value for all the fields"
+        "content": "You are an AI assistant that outputs either JSON POST request bodies or requests for the missing information to format those. The requests can be for Analysis, Supplier, Order and Product. Given the category that the user asks about (one of Analysis, Supplier, Order and Product), ask for all the needed fields to format a JSON request body. Once you have all of them, output the JSON request. If you do not have all of the JSON fields, ask the user for them. If you would output anything similar to JSON, output the JSON code instead"
     },
     {
         "role": "user",
-        "content": "Successful POST request to the Analysis endpoint"
+        "content": "Successful JSON body for a POST request to the endpoint Analysis"
     },
     {
         "role": "assistant",
@@ -25,7 +41,7 @@ basic =[
     },
     {
         "role": "user",
-        "content": "Successful POST request to the Supplier endpoint"
+        "content": "Successful JSON body for a POST request to the endpoint Supplier"
     },
     {
         "role": "assistant",
@@ -33,7 +49,7 @@ basic =[
     },
     {
         "role": "user",
-        "content": "Successful POST request to the Order endpoint"
+        "content": "Successful JSON body for a POST request to the endpoint Order"
     },
     {
         "role": "assistant",
@@ -41,19 +57,107 @@ basic =[
     },
     {
         "role": "user",
-        "content": "Successful POST request to the Product endpoint"
+        "content": "Successful JSON body for a POST request to the endpoint Product"
     },
     {
         "role": "assistant",
-        "content": "{ \n \"name\": \"Sample Product\", \n \"raw_materials\": [ \n { \n \"raw_material\": { \n \"name\": \"Product A\", \n \"description\": \"Sample description A\", \n \"type\": \"Type A\", \n \"unit_of_measurement\": \"unit\" \n }, \n \"quantity\": 10 \n },\n {\n \"raw_material\": { \n \"name\": \"Product B\", \n \"description\": \"Sample description B\", \n \"type\": \"Type b\", \n \"unit_of_measurement\": \"unit\" \n }, \n \"quantity\": 30 \n }\n ] \n} "
+        "content": "{ \n \"name\": \"Sample Product\", \n \"raw_materials\": [ \n { \n \"raw_material\": { \n \"name\": \"Product A\", \n \"description\": \"Sample description A\", \n \"type\": \"Type A\", \n \"unit_of_measurement\": \"unit\" \n }, \n \"quantity\": 10 \n },\n {\n \"raw_material\": { \n \"name\": \"Product B\", \n \"description\": \"Sample description B\", \n \"type\": \"Type b\", \n \"unit_of_measurement\": \"unit\" \n }, \n \"quantity\": 30 \n }\n ] \n}"
     },
     {
         "role": "user",
-        "content": "I want to enter a new supplier"
+        "content": "I want to run an Analysis"
     },
     {
         "role": "assistant",
-        "content": "I will need some additional information: Supplier name, raw materials (name, description, type and unit of measurement for each material as well as its price and minimum order quantity. Additionally I will need a contact person and a contact number"
+        "content": "To run the Analysis I will need the below information\nName\nCountry (should be one of 'United States', 'Canada', 'Poland', 'Germany', 'France')\nStart date\nEnd date\n\nFor at least three products (three or more products are required):\nBrand name\nTarget audience name\nReach\nCost\n\nFor each audience:\nGender flag\nStart age quantity\nEnd age quantity"
+    },
+    {
+        "role": "user",
+        "content": "I want to register a Supplier"
+    },
+    {
+        "role": "assistant",
+        "content": "I will need you to provide me with some information about the supplier:\nName\nContact Person\nContact Number\n\nFor each raw material:\nName\nDescription\nType\nUnit of measurement\nPrice\nMinimum Order quantity"
+    },
+    {
+        "role": "user",
+        "content": "I want to register an Order"
+    },
+    {
+        "role": "assistant",
+        "content": "I will need you to provide me with some information about the order:\nRegarding the Customer:\nName\nEmail\nPhone\nAddress\nCity\nLatitude\nLongitude\n\nFor each order line:\nProduct Name\nProduct Category (should be one of: 'femcare', 'babycare', 'grooming', 'healthcare', 'fabriccare', 'homecare')\nProduct Unit Price\nQuantity"
+    },
+    {
+        "role": "user",
+        "content": "I want to register a Product"
+    },
+    {
+        "role": "assistant",
+        "content": "I will need you to provide me with some information about the product:\nName\n\nFor each raw material that the product requires:\nName\nDescription\nType,\nUnit of measurement\nQuantity"
+    },
+    {
+        "role": "user",
+        "content": "I want to register a supplier"
+    },
+    {
+        "role": "assistant",
+        "content": "I will need you to provide me with some information about the supplier:\nName\nContact Person\nContact Number\n\nFor each raw material:\nName\nDescription\nType\nUnit of measurement\nPrice\nMinimum Order quantity"
+    },
+    {
+        "role": "user",
+        "content": "I want to analyze"
+    },
+    {
+        "role": "assistant",
+        "content": "To run the Analysis I will need the below information\nName\nCountry (should be one of 'United States', 'Canada', 'Poland', 'Germany', 'France')\nStart date\nEnd date\n\nFor at least three products (three or more products are required):\nBrand name\nTarget audience name\nReach\nCost\n\nFor each audience:\nGender flag\nStart age quantity\nEnd age quantity"
+    },
+    {
+        "role": "user",
+        "content": "Analysis"
+    },
+    {
+        "role": "assistant",
+        "content": "To run the Analysis I will need the below information\nName\nCountry (should be one of 'United States', 'Canada', 'Poland', 'Germany', 'France')\nStart date\nEnd date\n\nFor at least three products (three or more products are required):\nBrand name\nTarget audience name\nReach\nCost\n\nFor each audience:\nGender flag\nStart age quantity\nEnd age quantity"
+    },
+    {
+        "role": "user",
+        "content": "Supplier"
+    },
+    {
+        "role": "assistant",
+        "content": "I will need you to provide me with some information about the supplier:\nName\nContact Person\nContact Number\n\nFor each raw material:\nName\nDescription\nType\nUnit of measurement\nPrice\nMinimum Order quantity"
+    },
+    {
+        "role": "user",
+        "content": "Order"
+    },
+    {
+        "role": "assistant",
+        "content": "I will need you to provide me with some information about the supplier:\nName\nContact Person\nContact Number\n\nFor each raw material:\nName\nDescription\nType\nUnit of measurement\nPrice\nMinimum Order quantity"
+    },
+    {
+        "role": "user",
+        "content": "I want to enter an order"
+    },
+    {
+        "role": "assistant",
+        "content": "I will need you to provide me with some information about the supplier:\nName\nContact Person\nContact Number\n\nFor each raw material:\nName\nDescription\nType\nUnit of measurement\nPrice\nMinimum Order quantity"
+    },
+    {
+        "role": "user",
+        "content": "Product"
+    },
+    {
+        "role": "assistant",
+        "content": "I will need you to provide me with some information about the product:\nName\n\nFor each raw material that the product requires:\nName\nDescription\nType,\nUnit of measurement\nQuantity"
+    },
+    {
+        "role": "user",
+        "content": "I want to enter a product"
+    },
+    {
+        "role": "assistant",
+        "content": "I will need you to provide me with some information about the product:\nName\n\nFor each raw material that the product requires:\nName\nDescription\nType,\nUnit of measurement\nQuantity"
     }
 ]
 
@@ -73,22 +177,46 @@ if 'past' not in st.session_state:
     st.session_state['past'] = []
 
 def query(msg):
-     basic.append(
-          {"role":"user",
-           "content": msg}
-         )
-     response = openai.ChatCompletion.create(
-          engine="ChatGPT0301",
-          messages=basic,
-          temperature=0.5,
-          max_tokens=800,
-          top_p=0.95,
-          frequency_penalty=0,
-          presence_penalty=0,
-          stop=None)
-     
-     print(response["choices"][0]["message"]["content"])
-     return response["choices"][0]["message"]["content"]
+    basic.append(
+        {"role":"user",
+        "content": msg}
+        )
+    response = openai.ChatCompletion.create(
+        engine="ChatGPT0301",
+        messages=basic,
+        temperature=0.5,
+        max_tokens=800,
+        top_p=0.95,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop=None)
+    
+    print("ORYGINAL MESSAGE")
+    print(response["choices"][0]["message"]["content"])
+
+    try:
+        response_text = response["choices"][0]["message"]["content"].split("```")
+        data = response_text[1]
+        sentence = response_text[0]
+        print("ORYGINAL SENTENCE")
+        print(sentence)
+
+        if "Supplier" in sentence:
+            api = "supplier"
+        elif "Product" in sentence:
+            api = "product"
+        elif "Order" in sentence:
+            api = "order"
+
+        print(data)
+        code = post_request(json.loads(data), api)
+        if code == 200:
+            #TODO POP UP WINDOW
+    except Exception as err:
+        print(err)
+        print("No json")
+
+    return response["choices"][0]["message"]["content"]
 
 def get_text():
     input_text = st.text_input("You: ","Hello", key="input")
