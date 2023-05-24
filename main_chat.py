@@ -212,14 +212,14 @@ def query(msg):
 
         print(data)
         code = post_request(json.loads(data), api)
-        if code == 200:
-            print(f"Tell me that {api} was added")
 
     except Exception as err:
+        code = 0,
+        api = "none"
         print(err)
         print("No json")
 
-    return response["choices"][0]["message"]["content"]
+    return response["choices"][0]["message"]["content"], code, api
 
 def get_text():
     input_text = st.text_input("You: ","Hello", key="input")
@@ -228,13 +228,28 @@ def get_text():
 user_input = get_text()
 
 if user_input:
-    output = query(user_input)
+    output, code, api = query(user_input)
 
     st.session_state.past.append(user_input)
     st.session_state.generated.append(output)
 
+    if code == 200:
+        print(f"Tell me that {api} was added")
+        st.session_state['generated'].append(f"I added for you new {api}")
+        #st.session_state['past'].append("")
+
+
 if st.session_state['generated']:
 
     for i in range(len(st.session_state['generated'])-1, -1, -1):
-        message(st.session_state["generated"][i], key=str(i))
-        message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
+    #for i in range(len(st.session_state['generated'])):
+        try:
+            message(st.session_state["generated"][i], key=str(i))
+        except Exception:
+            print("err")
+        try:
+            message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
+        except Exception:
+            print("err")
+            
+        
