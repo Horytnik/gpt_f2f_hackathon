@@ -201,17 +201,20 @@ def query(msg):
         print("ORYGINAL SENTENCE")
         print(sentence)
 
-        if "Supplier" in sentence:
+        if "supplier" in sentence.lower():
             api = "supplier"
-        elif "Product" in sentence:
+        elif "product" in sentence.lower():
             api = "product"
-        elif "Order" in sentence:
+        elif "order" in sentence.lower():
             api = "order"
+        elif "analysis" in sentence.lower():
+            api = "analysis"
 
         print(data)
         code = post_request(json.loads(data), api)
         if code == 200:
-            #TODO POP UP WINDOW
+            print(f"Tell me that {api} was added")
+
     except Exception as err:
         print(err)
         print("No json")
